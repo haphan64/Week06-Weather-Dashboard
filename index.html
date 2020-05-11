@@ -18,16 +18,52 @@
       href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap"
       rel="stylesheet"
     />
+
+    <link
+      href="assets/style.css"
+      rel="stylesheet"
+    />
     <!-- <link rel="stylesheet" href="style.css" /> -->
     <title>Weather Dashboard</title>
   </head>
 
   <body>
     <header>
-      <h1>Weather Dashboard</h1>
+      <h1 class="text-center bg-dark text-white py-3" >Weather Dashboard</h1>
            
     </header>
     <div class="container">
+
+        <div class = "row">
+
+            <div class = "col-sm-3 bg-light">
+
+                <h4> Search for a city</h3>
+                <input id = "cityInput">
+                <button class="fas fa-search btn btn-primary" id = "search"></button>
+
+            </div>
+
+            <div class = "col-sm-9">
+
+                <div class = "border rounded p-3 mb-2" id = "cityData">
+                    
+                </div>
+
+                <div>
+
+                    <h3>5-Day Forecast:</h2>
+
+                    <div id = "forecast"></div>
+
+
+                </div>
+
+              
+              
+            </div>
+
+        </div>
         
       
     </div>  
