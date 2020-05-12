@@ -1,8 +1,13 @@
 .card {
 
-    width: 16%;
+    width: 18%;
     float: left;
-    margin-right: 30px;
+    margin-right: 2%;
     padding : 10px;
 
+}
+
+#knownCities {
+
+    margin-top: 20px;;
 }

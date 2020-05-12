@@ -3,32 +3,43 @@ var cacheKey = 'knownCities';
 // Get starting data from local storage
 
 var cities = JSON.parse(localStorage.getItem(cacheKey));
-
+    
 console.log(cities);
+
+// localStorage.clear(cities);
 
 if ( ! cities) {
 
-    cities = [];   
+    cities = {};   
 
 }
 
 // Start
-function searchWeather ( city ) {
 
-    $("#search").on("click",function () {
+$("#search").on("click",function () {
 
-        fetchWeather ($("#cityInput").val())
+    city = $("#cityInput").val();
     
-    });
-
-    console.log(city);
-
     
-    addNewCity (city);
+    fetchWeather (city);
 
-    // fetchWeather (city);
+});
+
+function searchByCity (city) {
+
+    $("#cityInput").val(city);
+
+    $("#search").click();
 
 }
+
+$("body").on("click", '.searched-cities', function () {
+
+    console.log('test');
+    searchByCity ($(this).text());      
+    
+});
+
 
 // Current weather API
 function fetchWeather ( city ) {
@@ -50,22 +61,23 @@ function fetchWeather ( city ) {
         
     }).then(function (response) {
 
-        cities[city] = {
+        
+        cities[response.name] = {
+            "name": response.name,
+            "temp": Math.round(((parseInt(response.main.temp) - 273.15) * 1.80 + 32)*10)/10,
+            "humidity": response.main.humidity,
+            "windSpeed": response.wind.speed,
+            "lon": response.coord.lon,
+            "lat": response.coord.lat
+            };
+        
 
-            name: response.name,
-            temp: Math.round(((parseInt(response.main.temp) - 273.15) * 1.80 + 32)*10)/10,
-            humidity: response.main.humidity,
-            windSpeed: response.wind.speed,
-            lon: response.coord.lon,
-            lat: response.coord.lat
-            
-        };
+        console.log("Print cities");
+        console.log(cities);
+        console.log(JSON.stringify( cities));
+        console.log("Print cities end");
 
-        console.log(response);
-
-        localStorage.setItem(cacheKey, JSON.stringify( cities));
-
-        displayCities (cities);
+        localStorage.setItem(cacheKey, JSON.stringify( cities));       
 
         displayWeather(response);
 
@@ -73,7 +85,7 @@ function fetchWeather ( city ) {
 
         fetchForecast (city);
 
-        
+        console.log(cities);
     });
 
 }
@@ -81,8 +93,7 @@ function fetchWeather ( city ) {
 // Display
 function displayWeather (cityData) {
 
-    // var cityData = fetchWeather(city);
-
+    
     console.log(cityData);
 
     var temp = Math.round(((parseInt(cityData.main.temp) - 273.15) * 1.80 + 32)*10)/10
@@ -164,9 +175,9 @@ function fetchForecast (city) {
 
         for (i = 0; i < response.list.length; i++) {
 
-            console.log(response.list[i].dt_txt);
-            console.log(response.list[i].main.temp);
-            console.log(response.list[i].main.humidity);
+            // console.log(response.list[i].dt_txt);
+            // console.log(response.list[i].main.temp);
+            // console.log(response.list[i].main.humidity);
 
             var date = moment(response.list[i].dt_txt).format('l');
             var tempFValue = Math.round(((parseInt(response.list[i].main.temp) - 273.15) * 1.80 + 32)*10)/10;
@@ -189,49 +200,97 @@ function fetchForecast (city) {
 
             }
 
-            
-
-            
+                        
         }
 
-        console.log (forecastData);
-        console.log(Object.values(forecastData));
-        
-        console.log(Object.keys(forecastData));
-   
-
-        $("#forecast").empty();
-
-        for ( i = 0; i < Object.keys(forecastData).length; i++ ) {
-            
-            var dateData = $("<div>");
-            dateData.addClass("card");
-
-            var dateF = Object.keys(forecastData)[i];
-            
-            if (moment().format('l') != dateF) {
-                
-                dateData.append("<h5>" + dateF + "</h5>");
-
-                
-                $("#forecast").append(dateData);
-
-            }
-
-           
-        }
-
-       
+               
+        displayForecast (forecastData)            
+             
 
     });
 
 }
 
 // Display Forecast
-function displayForecast (cityData) {
+function displayForecast (forecastData) {
+
+    $("#forecast").empty();
+
+    for ( i = 0; i < Object.keys(forecastData).length; i++ ) {
+        
+        var dateData = $("<div>");
+        dateData.addClass("card bg-primary text-white");                          
+              
+
+        var dateF = Object.keys(forecastData)[i];
+        if (moment().format('l') != dateF) {
+            
+            dateData.append("<h5>" + dateF + "</h5>");
+            // dateData.append("<p>" + avgTempF + "</p>");
+            
+            $("#forecast").append(dateData);
+
+        }
+
+        console.log("value");
+
+
+        // Average Temp for each day
+        var tempFdata = forecastData[dateF].tempF;
+
+        var totalTempF = 0;
+
+        for(var t = 0; t < tempFdata.length; t++) {
+            totalTempF += tempFdata[t];
+        }
+
+        var avgTempF = Math.round((totalTempF / tempFdata.length)*100)/100;
+
+        console.log("avg Temp:" + avgTempF);
+
+        dateData.append("<p>" + "Temp: " + avgTempF + " °F" + "</p>");
 
 
 
+        // Average Humidity for each day
+        var humidityFdata = forecastData[dateF].humidityF;
+
+        var totalHumidityF = 0;
+
+        for(var h = 0; h < humidityFdata.length; h++) {
+            totalHumidityF += humidityFdata[h];
+        }
+
+        var avgHumidityF = Math.round(totalHumidityF / humidityFdata.length);
+       
+
+        dateData.append("<p>" + "Humidity: " + avgHumidityF + " %" + "</p>");
+
+
+                    
+    }
+
+    console.log(Object.values(forecastData));
+
+    // for (i = 0; i < Object.values(forecastData).length; i++ ) {
+
+    //     console.log(Object.values(forecastData)[i]);
+    
+    //     var tempFdata = Object.values(forecastData)[i].tempF;
+
+    //         console.log(tempFdata);
+
+    //     var totalTempF = 0;
+
+    //     for(var t = 0; t < tempFdata.length; t++) {
+    //         totalTempF += tempFdata[t];
+    //     }
+
+    //     var avgTempF = totalTempF / tempFdata.length;
+
+    //     console.log("avg Temp:" + avgTempF);
+
+    // }
 }
 
 // Add new city
@@ -246,7 +305,11 @@ function addNewCity ( city ) {
 
         cities.push(city);
 
+        // cities[city] = {};
+
         localStorage.setItem (cacheKey, JSON.stringify( cities));
+        
+        console.log(cities);
 
     };
 
@@ -254,12 +317,33 @@ function addNewCity ( city ) {
 
 function displayCities (cities) {
 
+    console.log("cities");
     console.log(cities);
+
+    console.log(Object.keys(cities));
+
+    $("#knownCities").empty();
+
+    for (i = 0; i < Object.keys(cities).length; i++ ) {
+
+        var knownCities = $("<button>");
+
+        knownCities.addClass("btn-block searched-cities");
+        
+        knownCities.text(Object.keys(cities)[i]);
+        
+        $("#knownCities").append(knownCities);
+
+    }
+
+    var lastCity = Object.keys(cities)[Object.keys(cities).length - 1];
+
+    searchByCity (lastCity);
 
 }
 
 
 
 // searchWeather ($("#cityInput").val());
-searchWeather ($("#cityInput").val());
 
+displayCities (cities);
