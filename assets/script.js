@@ -67,6 +67,7 @@ function fetchWeather ( city ) {
             "temp": Math.round(((parseInt(response.main.temp) - 273.15) * 1.80 + 32)*10)/10,
             "humidity": response.main.humidity,
             "windSpeed": response.wind.speed,
+            "icon": response.weather[0].icon,
             "lon": response.coord.lon,
             "lat": response.coord.lat
             };
@@ -74,6 +75,7 @@ function fetchWeather ( city ) {
 
         console.log("Print cities");
         console.log(cities);
+        console.log(response.weather[0].icon);
         console.log(JSON.stringify( cities));
         console.log("Print cities end");
 
@@ -93,14 +95,15 @@ function fetchWeather ( city ) {
 // Display
 function displayWeather (cityData) {
 
-    
+    console.log("displayWeather");
     console.log(cityData);
 
     var temp = Math.round(((parseInt(cityData.main.temp) - 273.15) * 1.80 + 32)*10)/10
     $("#cityData").empty();
     
 
-    $("#cityData").append("<h3>" + cityData.name + " (" + moment().format('l') + ")" + "</h3>")
+    $("#cityData").append("<h3>" + cityData.name + " (" + moment().format('l') + ")" + "<img src = " + "https://openweathermap.org/img/wn/" + cityData.weather[0].icon + "@2x.png>" + "</h3>")
+    // $("#cityData").append("<img src = " + "https://openweathermap.org/img/wn/" + cityData.weather[0].icon + "@2x.png>")    
     $("#cityData").append("<p>" + "Temperature: " + temp + " °F" + "</p>")
     $("#cityData").append("<p>" + "Humidity: " + cityData.main.humidity + "%" + "</p>")
     $("#cityData").append("<p>" + "Wind Speed: " + cityData.wind.speed + " MPH" + "</p>")  
@@ -144,7 +147,40 @@ function fetchUV (coord) {
 // Display UV
 function displayUV (response) {
 
-    $("#cityData").append("<p>" + "UV Index: " + response.value + "</p>")
+    console.log("displayUV");
+
+    var uvi = $("<span>");
+
+    uvi.attr("id","uvi-index");
+
+    uvi.attr("class","badge text-white");
+
+    var uviValue = Number(response.value);
+
+    console.log(Number(response.value));
+
+    if (uviValue <=2 ) {
+
+        uvi.attr("id","low");
+        
+    } else if ( uviValue <= 5 ) {
+
+        uvi.attr("id","moderate");
+
+    } else if ( uviValue <= 7 ) {
+
+        uvi.attr("id","high");
+
+    } else if ( uviValue <= 10 ) {
+
+        uvi.attr("id","very-high");
+
+    } else { uvi.attr("id","extreme");}
+
+
+    uvi.text("UV Index: " + response.value)
+
+    $("#cityData").append(uvi)
     
 }
 
@@ -175,15 +211,10 @@ function fetchForecast (city) {
 
         for (i = 0; i < response.list.length; i++) {
 
-            // console.log(response.list[i].dt_txt);
-            // console.log(response.list[i].main.temp);
-            // console.log(response.list[i].main.humidity);
-
             var date = moment(response.list[i].dt_txt).format('l');
             var tempFValue = Math.round(((parseInt(response.list[i].main.temp) - 273.15) * 1.80 + 32)*10)/10;
             var humidityFValue = response.list[i].main.humidity;
-            
-            
+            var iconF = response.list[i].weather[0].icon;                       
                
             if ( date in forecastData) {   
                 
@@ -191,12 +222,15 @@ function fetchForecast (city) {
                                 
                 forecastData[date].tempF.push(tempFValue);
                 forecastData[date].humidityF.push(humidityFValue);
+                console.log("iconF: " +  response.list[i].weather[0].icon);
 
-            } else {
+            } else if (Object.keys(forecastData).length < 5){
                                 
-                forecastData[date] = {'tempF':[],'humidityF':[]};
+                forecastData[date] = {'tempF':[],'humidityF':[],'icon': ""};
                 forecastData[date].tempF.push(tempFValue);
                 forecastData[date].humidityF.push(humidityFValue);
+                forecastData[date].icon = iconF;
+                console.log("iconF: " +  response.list[i].weather[0].icon);
 
             }
 
@@ -232,7 +266,10 @@ function displayForecast (forecastData) {
 
         }
 
-        console.log("value");
+
+        dateData.append("<img src = " + "https://openweathermap.org/img/wn/" + forecastData[dateF].icon + "@2x.png>");
+
+        console.log("Average Temp + Humidity");
 
 
         // Average Temp for each day
@@ -272,25 +309,7 @@ function displayForecast (forecastData) {
 
     console.log(Object.values(forecastData));
 
-    // for (i = 0; i < Object.values(forecastData).length; i++ ) {
-
-    //     console.log(Object.values(forecastData)[i]);
-    
-    //     var tempFdata = Object.values(forecastData)[i].tempF;
-
-    //         console.log(tempFdata);
-
-    //     var totalTempF = 0;
-
-    //     for(var t = 0; t < tempFdata.length; t++) {
-    //         totalTempF += tempFdata[t];
-    //     }
-
-    //     var avgTempF = totalTempF / tempFdata.length;
-
-    //     console.log("avg Temp:" + avgTempF);
-
-    // }
+  
 }
 
 // Add new city
